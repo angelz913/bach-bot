@@ -34,7 +34,7 @@ def download(url, id):
                 'postprocessors': [{
                     'key': 'FFmpegExtractAudio',
                     'preferredcodec': 'mp3',
-                    'preferredquality': '192' 
+                    'preferredquality': '192'
                 }],
                 'outtmpl': id}
     with youtube_dl.YoutubeDL(opts) as ydl:
@@ -56,13 +56,13 @@ async def on_message(message):
 
     tokens = message.content.split(' ')
     print(tokens)
-    
+
     # ignore other messages
     if tokens[0] != 'bwv' and tokens[0] != 'js':
         return
-    
+
     print(message.author.voice)
-    
+
     if tokens[1].isnumeric():
         # join the voice channel
         if message.author.voice:
@@ -83,19 +83,19 @@ async def on_message(message):
         else:
             url = f"{YOUTUBE_WATCH}{queue[0]['id']}"
             # download(url, queue[0]['id'])
-            vc.play(discord.FFmpegPCMAudio(source="test.mp3", 
-                                           executable='../../ffmpeg/bin/ffmpeg.exe'), 
+            vc.play(discord.FFmpegPCMAudio(source="test.mp3",
+                                           executable='../../ffmpeg/bin/ffmpeg.exe'),
                     after=play_next)
             await message.channel.send(f"▶️ Playing {url}")
             is_playing = True
-    
+
     elif tokens[1] == 'pause':
         if vc and vc.is_playing():
             vc.pause()
             await message.channel.send("⏸️ Paused")
         else:
             await message.channel.send("❌ Not playing anything")
-            
+
     elif tokens[1] == 'resume':
         if vc and vc.is_paused():
             vc.resume()
