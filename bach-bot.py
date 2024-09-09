@@ -3,6 +3,8 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 from dotenv import load_dotenv
+import youtube_dl
+import yt_dlp
 
 load_dotenv()
 
@@ -21,9 +23,29 @@ async def on_ready():
     await bot.tree.sync()
     print(f'Logged in as {bot.user}')
 
-@bot.tree.command(name="play", description="Play music from a link")
-async def play(interaction: discord.Interaction, link: str):
-    await interaction.response.send_message(f"Your link was {link}")
+# Options for streaming music
+ytdl_options = {
+    'format': 'bestaudio/best',
+    'noplaylist': True,
+}
+ytdl = youtube_dl.YoutubeDL(ytdl_options)
+ffmpeg_options = {
+    'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
+    'options': '-vn'
+}
+
+@bot.tree.command(name="play", description="Play music from an url")
+async def play(interaction: discord.Interaction, url: str):
+    await interaction.user.voice.channel.connect()
+    await interaction.response.defer()
+    async with interaction.channel.typing():
+        # Get the direct streamable url
+        with yt_dlp.YoutubeDL(ytdl_options) as ydl:
+            info = ydl.extract_info(url, download=False)
+            audio_url = info['url']
+        audio_source = discord.FFmpegPCMAudio(audio_url, **ffmpeg_options)
+        interaction.guild.voice_client.play(audio_source)
+    await interaction.followup.send(f"Start playing: {url}")
 
 @bot.tree.command(name="composer", description="Play music by a specific composer")
 async def composer(interaction: discord.Interaction, composer: str):
