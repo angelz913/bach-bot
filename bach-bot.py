@@ -47,6 +47,31 @@ async def play(interaction: discord.Interaction, url: str):
         interaction.guild.voice_client.play(audio_source)
     await interaction.followup.send(f"Start playing: {url}")
 
+@bot.tree.command(name="resume", description="Resume music")
+async def resume(interaction: discord.Interaction):
+    vc = interaction.guild.voice_client
+    if vc:
+        vc.resume()
+        await interaction.response.send_message("Resumed")
+
+@bot.tree.command(name="pause", description="Pause music")
+async def pause(interaction: discord.Interaction):
+    vc = interaction.guild.voice_client
+    if vc and vc.is_playing():
+        vc.pause()
+        await interaction.response.send_message("Paused")
+    else:
+        await interaction.response.send_message("Not playing music")
+
+@bot.tree.command(name="stop", description="Stop music")
+async def stop(interaction: discord.Interaction):
+    vc = interaction.guild.voice_client
+    if vc and vc.is_playing():
+        vc.stop()
+        await interaction.response.send_message("Stopped")
+    else:
+        await interaction.response.send_message("Not playing music")
+
 @bot.tree.command(name="composer", description="Play music by a specific composer")
 async def composer(interaction: discord.Interaction, composer: str):
     await interaction.response.send_message(f"Your specified era was {composer}")
