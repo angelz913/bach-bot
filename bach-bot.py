@@ -8,7 +8,7 @@ import yt_dlp
 
 load_dotenv()
 
-BOT_TOKEN = os.getenv('BOT_TOKEN')
+BOT_TOKEN = os.getenv("BOT_TOKEN")
 
 # Set intents
 intents = discord.Intents.default()
@@ -21,28 +21,31 @@ bot = commands.Bot(command_prefix="/", intents=intents)
 @bot.event
 async def on_ready():
     await bot.tree.sync()
-    print(f'Logged in as {bot.user}')
+    print(f"Logged in as {bot.user}")
 
 # Options for streaming music
 ytdl_options = {
-    'format': 'bestaudio/best',
-    'noplaylist': True,
+    "format": "bestaudio/best",
+    "noplaylist": True,
 }
 ytdl = youtube_dl.YoutubeDL(ytdl_options)
 ffmpeg_options = {
-    'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
-    'options': '-vn'
+    "before_options": "-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5",
+    "options": "-vn"
 }
 
 @bot.tree.command(name="play", description="Play music from an url")
-async def play(interaction: discord.Interaction, url: str):
+async def play(interaction: discord.Interaction, url: str, semitone : int):
     await interaction.user.voice.channel.connect()
     await interaction.response.defer()
     async with interaction.channel.typing():
         # Get the direct streamable url
         with yt_dlp.YoutubeDL(ytdl_options) as ydl:
             info = ydl.extract_info(url, download=False)
-            audio_url = info['url']
+            audio_url = info["url"]
+        pitch = 2 ** (semitone / 12)
+        global ffmpeg_options
+        ffmpeg_options["options"] += " -af 'rubberband=pitch='" + str(pitch)
         audio_source = discord.FFmpegPCMAudio(audio_url, **ffmpeg_options)
         interaction.guild.voice_client.play(audio_source)
     await interaction.followup.send(f"Start playing: {url}")
